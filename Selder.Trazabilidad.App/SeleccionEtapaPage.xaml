@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Selder.Trazabilidad.App.SeleccionEtapaPage"
+             Title="Paso 3: Seleccionar Etapa"
+             BackgroundColor="White">
+
+    <VerticalStackLayout Spacing="20" Padding="20" VerticalOptions="Center">
+
+        <Label x:Name="LblLote" 
+               FontSize="22" 
+               FontAttributes="Bold" 
+               HorizontalOptions="Center" 
+               TextColor="#2196F3" 
+               Margin="0,0,0,20"/>
+
+        <Button Text="1. PESADO" Clicked="OnEtapaSelected" CommandParameter="PESADO" HeightRequest="80" FontSize="18" BackgroundColor="#2196F3" TextColor="White"/>
+        <Button Text="2. SECADO" Clicked="OnEtapaSelected" CommandParameter="SECADO" HeightRequest="80" FontSize="18" BackgroundColor="#2196F3" TextColor="White"/>
+        <Button Text="3. (PENDIENTE)" Clicked="OnEtapaSelected" CommandParameter="ETAPA3" HeightRequest="80" FontSize="18" BackgroundColor="#E0E0E0" TextColor="#757575"/>
+        <Button Text="4. (PENDIENTE)" Clicked="OnEtapaSelected" CommandParameter="ETAPA4" HeightRequest="80" FontSize="18" BackgroundColor="#E0E0E0" TextColor="#757575"/>
+
+    </VerticalStackLayout>
+</ContentPage>

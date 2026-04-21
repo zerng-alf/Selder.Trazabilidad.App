@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Selder.Trazabilidad.App.EtapasPage"
+             Title="Escaneo de Tiempos"
+             BackgroundColor="#F5F5F5">
+
+    <VerticalStackLayout Spacing="20" Padding="20">
+
+        <Frame BackgroundColor="#2196F3" Padding="15">
+            <Label x:Name="LblLoteInfo" Text="LOTE: ---" 
+                   TextColor="White" FontSize="20" FontAttributes="Bold" HorizontalOptions="Center"/>
+        </Frame>
+
+        <Entry x:Name="TxtScannerEtapa" 
+               TextChanged="OnScannerEtapaChanged"
+               Opacity="0" HeightRequest="1" WidthRequest="1" />
+
+        <Label Text="ESPERANDO ESCANEO DE ACCIÓN" 
+               FontSize="18" FontAttributes="Bold" HorizontalOptions="Center" TextColor="#666"/>
+
+        <Frame x:Name="FrameInicio" BorderColor="#CCC" Padding="20">
+            <Label Text="INICIO [Escanee Código Inicio]" HorizontalOptions="Center" FontSize="16"/>
+        </Frame>
+
+        <Frame x:Name="FrameFin" BorderColor="#CCC" Padding="20">
+            <Label Text="FIN [Escanee Código Fin]" HorizontalOptions="Center" FontSize="16"/>
+        </Frame>
+
+    </VerticalStackLayout>
+</ContentPage>

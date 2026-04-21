@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Selder.Trazabilidad.App.EscaneoTiemposPage"
+             Title="Paso 4: Registrar Tiempo"
+             BackgroundColor="#F5F5F5">
+
+    <VerticalStackLayout Spacing="30" Padding="30" VerticalOptions="Center">
+
+        <Label x:Name="LblInfo" FontSize="18" HorizontalOptions="Center" TextColor="#333"/>
+
+        <Entry x:Name="TxtScannerTiempos" 
+           TextChanged="OnScannerTiemposChanged"
+           TextColor="Transparent"
+           BackgroundColor="Transparent"
+           HeightRequest="40" 
+           WidthRequest="100" />
+
+        <Frame BorderColor="#2196F3" CornerRadius="15" Padding="40">
+            <Label Text="ESCANEÉ CÓDIGO DE INICIO O FIN" 
+                   FontSize="20" FontAttributes="Bold" 
+                   HorizontalOptions="Center" HorizontalTextAlignment="Center"/>
+        </Frame>
+
+    </VerticalStackLayout>
+</ContentPage>

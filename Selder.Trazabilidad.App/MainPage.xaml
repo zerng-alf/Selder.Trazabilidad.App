@@ -1,0 +1,41 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Selder.Trazabilidad.App.MainPage">
+
+    <StackLayout Padding="20" Spacing="20" BackgroundColor="#121212">
+
+        <Frame x:Name="FrameStatus" BackgroundColor="#444" CornerRadius="10" Padding="15">
+            <Label x:Name="LblStatus" 
+               Text="ESPERANDO ESCANEO..." 
+               TextColor="White" 
+               FontSize="24" 
+               FontAttributes="Bold" 
+               HorizontalOptions="Center"/>
+        </Frame>
+
+        <Label x:Name="LblInstruccion" 
+           Text="ESCANEÉ EL LOTE" 
+           TextColor="Gray" 
+           FontSize="18" 
+           HorizontalOptions="Center"/>
+
+        <Entry x:Name="TxtScanner" 
+           FontSize="18" 
+           TextColor="White"
+           TextChanged="OnScannerTextChanged"
+           HorizontalOptions="FillAndExpand" />
+
+        <VerticalStackLayout Spacing="5" Margin="0,20">
+            <Label Text="LOTE ACTUAL:" TextColor="White" FontSize="14"/>
+            <Label x:Name="LblLoteCapturado" Text="---" TextColor="Cyan" FontSize="32" FontAttributes="Bold"/>
+        </VerticalStackLayout>
+
+        <Button Text="LIMPIAR / REINICIAR" 
+            Clicked="OnResetClicked" 
+            BackgroundColor="#333" 
+            TextColor="White" 
+            Margin="0,50,0,0"/>
+    </StackLayout>
+
+</ContentPage>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Selder.Trazabilidad.App.LoginPage"
+             Title="Acceso Selder"
+             BackgroundColor="White">
+
+    <VerticalStackLayout Spacing="20" Padding="30" VerticalOptions="Center">
+
+        <Image Source="dotnet_bot.png" 
+               HeightRequest="100" 
+               HorizontalOptions="Center" />
+
+        <Label Text="Trazabilidad de Fabricación" 
+               FontSize="22" 
+               FontAttributes="Bold" 
+               HorizontalOptions="Center" 
+               TextColor="#2196F3"/>
+        <Entry x:Name="TxtUsuario" 
+               Placeholder="Usuario" 
+               Keyboard="Text" />
+
+        <Entry x:Name="TxtPassword" 
+               Placeholder="Contraseña" 
+               IsPassword="True" />
+
+        <Button Text="ENTRAR" 
+                Clicked="OnLoginClicked" 
+                BackgroundColor="#2196F3" 
+                TextColor="White" 
+                HeightRequest="50"/>
+
+        <Label x:Name="LblError" 
+               TextColor="Red" 
+               HorizontalOptions="Center" />
+
+    </VerticalStackLayout>
+</ContentPage>
