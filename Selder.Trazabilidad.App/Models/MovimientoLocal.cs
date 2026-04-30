@@ -1,6 +1,6 @@
 ﻿using SQLite;
 
-namespace Selder.Trazabilidad.App;
+namespace Selder.Trazabilidad.App.Models;
 
 public class MovimientoLocal
 {

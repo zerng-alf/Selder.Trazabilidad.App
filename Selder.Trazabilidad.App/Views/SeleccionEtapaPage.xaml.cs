@@ -2,13 +2,12 @@ namespace Selder.Trazabilidad.App;
 
 public partial class SeleccionEtapaPage : ContentPage
 {
-    string _lote;
 
-    public SeleccionEtapaPage(string lote)
+    public SeleccionEtapaPage() 
     {
         InitializeComponent();
-        _lote = lote;
-        LblLote.Text = $"LOTE: {_lote}";
+        // Si tienes el LblLote en el XAML, puedes poner un mensaje genérico
+        if (LblLote != null) LblLote.Text = "Seleccione la Etapa de Trabajo";
     }
 
     private async void OnEtapaSelected(object sender, EventArgs e)
@@ -16,7 +15,7 @@ public partial class SeleccionEtapaPage : ContentPage
         var boton = (Button)sender;
         string etapa = boton.CommandParameter.ToString();
 
-        // Esto abre la pantalla donde se escanea INICIO o FIN
-        await Navigation.PushAsync(new EscaneoTiemposPage(_lote, etapa));
+        // Ahora navegamos a MainPage pasando SOLO la etapa
+        await Navigation.PushAsync(new MainPage(etapa));
     }
 }

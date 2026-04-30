@@ -14,7 +14,7 @@ namespace Selder.Trazabilidad.App
             if (TxtUsuario.Text == "admin" && TxtPassword.Text == "1234")
             {
                 // Llamamos a MainPage sin parámetros para que no marque error
-                await Navigation.PushAsync(new MainPage());
+                await Navigation.PushAsync(new SeleccionEtapaPage());
             }
             else
             {

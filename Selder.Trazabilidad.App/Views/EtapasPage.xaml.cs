@@ -1,4 +1,7 @@
 using SQLite;
+using Selder.Trazabilidad.App.Services;
+using Selder.Trazabilidad.App.Helpers;
+using Selder.Trazabilidad.App.Models;
 
 namespace Selder.Trazabilidad.App;
 
@@ -14,7 +17,7 @@ public partial class EtapasPage : ContentPage
         loteCapturado = lote;
         LblLoteInfo.Text = $"LOTE: {lote}";
 
-        // Importante: Poner el foco para recibir el escáner
+        // Importante: Para recibir el escáner
         TxtScannerEtapa.Focus();
     }
 
