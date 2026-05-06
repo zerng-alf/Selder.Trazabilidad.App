@@ -12,7 +12,7 @@ namespace Selder.Trazabilidad.App.Helpers
     {
         private static CancellationTokenSource _cts = new CancellationTokenSource();
 
-        public static async Task<string> ValidarCodigoCompleto(string textoNuevo, int delayMs = 600) // Subimos a 600ms
+        public static async Task<string> ValidarCodigoCompleto(string textoNuevo, int delayMs = 800) // Subimos a 600ms
         {
             _cts.Cancel();
             _cts = new CancellationTokenSource();

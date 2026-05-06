@@ -2,22 +2,104 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Selder.Trazabilidad.App.SeleccionEtapaPage"
-             Title="Paso 3: Seleccionar Etapa"
-             BackgroundColor="White">
+             Title="Paso 1: Etapa de Trabajo"
+             BackgroundColor="#F5F5F5">
 
-    <VerticalStackLayout Spacing="20" Padding="20" VerticalOptions="Center">
+    <ScrollView>
+        <VerticalStackLayout Spacing="15" Padding="20">
 
-        <Label x:Name="LblLote" 
-               FontSize="22" 
-               FontAttributes="Bold" 
-               HorizontalOptions="Center" 
-               TextColor="#2196F3" 
-               Margin="0,0,0,20"/>
+            <!-- Cabecera Informativa -->
+            <Frame BackgroundColor="#2196F3" 
+                   CornerRadius="15" 
+                   HasShadow="True" 
+                   Padding="20"
+                   BorderColor="Transparent">
+                <VerticalStackLayout Spacing="5">
+                    <Label Text="MÓDULO DE TRAZABILIDAD" 
+                           TextColor="White" 
+                           FontSize="12" 
+                           FontAttributes="Bold"
+                           Opacity="0.8"
+                           HorizontalOptions="Center"/>
+                    <Label x:Name="LblLote" 
+                           Text="Seleccione la Etapa de Trabajo"
+                           FontSize="18" 
+                           FontAttributes="Bold" 
+                           TextColor="White" 
+                           HorizontalOptions="Center"
+                           HorizontalTextAlignment="Center"/>
+                </VerticalStackLayout>
+            </Frame>
 
-        <Button Text="1. PESADO" Clicked="OnEtapaSelected" CommandParameter="PESADO" HeightRequest="80" FontSize="18" BackgroundColor="#2196F3" TextColor="White"/>
-        <Button Text="2. SECADO" Clicked="OnEtapaSelected" CommandParameter="SECADO" HeightRequest="80" FontSize="18" BackgroundColor="#2196F3" TextColor="White"/>
-        <Button Text="3. (PENDIENTE)" Clicked="OnEtapaSelected" CommandParameter="ETAPA3" HeightRequest="80" FontSize="18" BackgroundColor="#E0E0E0" TextColor="#757575"/>
-        <Button Text="4. (PENDIENTE)" Clicked="OnEtapaSelected" CommandParameter="ETAPA4" HeightRequest="80" FontSize="18" BackgroundColor="#E0E0E0" TextColor="#757575"/>
+            <Label Text="ETAPAS DISPONIBLES" 
+                   FontSize="13" 
+                   FontAttributes="Bold" 
+                   TextColor="#666" 
+                   Margin="5,10,0,0"/>
 
-    </VerticalStackLayout>
+            <!-- Listado de Etapas Modernizado -->
+            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="15" RowSpacing="15">
+
+                <!-- Etapa 1: Pesado -->
+                <Frame Grid.Row="0" Grid.Column="0" 
+                       Padding="0" CornerRadius="15" HasShadow="True" BorderColor="Transparent">
+                    <Button Text="1. PESADO" 
+                            Clicked="OnEtapaSelected" 
+                            CommandParameter="PESADO" 
+                            HeightRequest="120"
+                            FontSize="16" 
+                            FontAttributes="Bold"
+                            BackgroundColor="White" 
+                            TextColor="#2196F3"/>
+                </Frame>
+
+                <!-- Etapa 2: Secado -->
+                <Frame Grid.Row="0" Grid.Column="1" 
+                       Padding="0" CornerRadius="15" HasShadow="True" BorderColor="Transparent">
+                    <Button Text="2. SECADO" 
+                            Clicked="OnEtapaSelected" 
+                            CommandParameter="SECADO" 
+                            HeightRequest="120"
+                            FontSize="16" 
+                            FontAttributes="Bold"
+                            BackgroundColor="White" 
+                            TextColor="#2196F3"/>
+                </Frame>
+
+                <!-- Etapa 3: Pendiente -->
+                <Frame Grid.Row="1" Grid.Column="0" 
+                       Padding="0" CornerRadius="15" HasShadow="False" BorderColor="#DDD" BackgroundColor="#F0F0F0">
+                    <Button Text="3. PENDIENTE" 
+                            Clicked="OnEtapaSelected" 
+                            CommandParameter="ETAPA3" 
+                            HeightRequest="120"
+                            FontSize="14" 
+                            BackgroundColor="Transparent" 
+                            TextColor="#999"
+                            IsEnabled="False"/>
+                </Frame>
+
+                <!-- Etapa 4: Pendiente -->
+                <Frame Grid.Row="1" Grid.Column="1" 
+                       Padding="0" CornerRadius="15" HasShadow="False" BorderColor="#DDD" BackgroundColor="#F0F0F0">
+                    <Button Text="4. PENDIENTE" 
+                            Clicked="OnEtapaSelected" 
+                            CommandParameter="ETAPA4" 
+                            HeightRequest="120"
+                            FontSize="14" 
+                            BackgroundColor="Transparent" 
+                            TextColor="#999"
+                            IsEnabled="False"/>
+                </Frame>
+            </Grid>
+
+            <Label Text="Toque la etapa para iniciar el escaneo de lotes" 
+                   FontSize="12" 
+                   TextColor="Gray" 
+                   HorizontalOptions="Center" 
+                   Margin="0,20,0,0"
+                   FontAttributes="Italic"/>
+
+        </VerticalStackLayout>
+    </ScrollView>
 </ContentPage>

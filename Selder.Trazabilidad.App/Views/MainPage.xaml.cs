@@ -1,6 +1,6 @@
 ﻿using Selder.Trazabilidad.App.Models;
 using Selder.Trazabilidad.App.Helpers;
-using Selder.Trazabilidad.App.Services; // Importante para el Servicio
+using Selder.Trazabilidad.App.Services;
 using SQLite;
 using System.Text;
 using System.Text.Json;
@@ -13,6 +13,8 @@ public partial class MainPage : ContentPage
     private readonly SQLiteAsyncConnection _db = App.Database;
     private readonly TraceabilityService _traceService; // Inyectamos el servicio
     bool estaProcesando = false;
+    private string _bufferEscaneo = ""; // Aquí guardaremos el código letra por letra
+    private CancellationTokenSource _scannerCts;
 
     public MainPage(string etapa)
     {
@@ -52,54 +54,75 @@ public partial class MainPage : ContentPage
 
     private async void OnScannerTextChanged(object sender, TextChangedEventArgs e)
     {
-        string codigoCompleto = await ScannerHelper.ValidarCodigoCompleto(e.NewTextValue);
-        if (codigoCompleto == null) return;
+        // 1. Si el cambio fue porque nosotros limpiamos el campo (Text = ""), ignoramos.
+        if (string.IsNullOrEmpty(e.NewTextValue)) return;
 
-        await ProcesarEntradaDirecta(codigoCompleto);
+        // 2. Acumulamos lo que entró. 
+        // NOTA: Usamos el último carácter porque la Zebra manda una ráfaga.
+        string entradaActual = e.NewTextValue;
+
+        // Reiniciamos el temporizador de espera
+        _scannerCts?.Cancel();
+        _scannerCts = new CancellationTokenSource();
+
+        try
+        {
+            // Esperamos 800ms de "silencio" total del escáner
+            await Task.Delay(800, _scannerCts.Token);
+
+            // Si llegamos aquí, el escáner terminó de mandar datos.
+            // Tomamos TODO lo que se acumuló en el Entry.
+            string codigoCompleto = entradaActual.Trim().ToUpper();
+
+            if (codigoCompleto.Length >= 3)
+            {
+                await ProcesarEntradaDirecta(codigoCompleto);
+            }
+        }
+        catch (TaskCanceledException)
+        {
+            // El escáner sigue mandando letras, no hacemos nada todavía
+        }
     }
 
     private async Task ProcesarEntradaDirecta(string codigoLote)
     {
         if (estaProcesando) return;
 
-        if (string.IsNullOrEmpty(codigoLote) || codigoLote.Length < 3) return;
-
         try
         {
             estaProcesando = true;
 
+            // LIMPIEZA INMEDIATA: Vaciamos el TxtScanner para que esté listo para el siguiente lote
             MainThread.BeginInvokeOnMainThread(() => TxtScanner.Text = string.Empty);
 
-            // 1. LÓGICA DE DETECCIÓN (Busca en SQLite si ya se inició esta etapa)
+            // 1. LÓGICA DE DETECCIÓN (Usa la variable codigoLote que ya viene completa)
             var ultimoMovimiento = await _db.Table<MovimientoLocal>()
                 .Where(m => m.NumLote == codigoLote && m.Etapa.StartsWith(_etapaSeleccionada))
                 .OrderByDescending(m => m.Fecha)
                 .FirstOrDefaultAsync();
 
-            string subEtapaApi = ""; // Lo que entiende el SQL Server (Tu API)
-            string etiquetaLocal = ""; // Lo que guardamos para el historial interno
+            string subEtapaApi = "";
+            string etiquetaLocal = "";
 
-            // Comprobamos si el último registro fue un cierre o no existe
             if (ultimoMovimiento == null || ultimoMovimiento.Etapa.Contains("FIN"))
             {
-                subEtapaApi = "INICIO"; // Coincide con el switch de tu API
+                subEtapaApi = "INICIO";
                 etiquetaLocal = $"{_etapaSeleccionada} - INICIO";
                 MostrarEstado($"INICIANDO: {codigoLote}", Colors.DarkCyan);
             }
             else
             {
-                // CAMBIO CLAVE: Usamos "FIN" para que tu API actualice FECHAFIN
                 subEtapaApi = "FIN";
                 etiquetaLocal = $"{_etapaSeleccionada} - FIN";
                 MostrarEstado($"FINALIZANDO: {codigoLote}", Colors.Green);
             }
 
-            // 2. REGISTRO: Mandamos "INICIO" o "FIN" a la API y la etiqueta completa al SQLite
+            // 2. REGISTRO
             var result = await _traceService.LogEventAsync(subEtapaApi, codigoLote, etiquetaLocal);
 
             if (result.IsSuccess)
             {
-                // Usamos subEtapaApi para el mensaje de éxito (INICIO o FIN)
                 MostrarEstado($"¡{subEtapaApi} REGISTRADO!", Colors.Green);
                 LblLoteCapturado.Text = codigoLote;
                 LblInstruccion.Text = $"ÚLTIMO: {etiquetaLocal}";
@@ -107,7 +130,7 @@ public partial class MainPage : ContentPage
             else if (result.IsOffline)
             {
                 MostrarEstado("GUARDADO LOCAL (SIN RED)", Colors.Yellow);
-                await DisplayAlert("Modo Offline", "Sin conexión. Se sincronizará después.", "OK");
+                await DisplayAlert("Modo Offline", "Sin conexión. Registro guardado en la Zebra.", "OK");
                 LblLoteCapturado.Text = codigoLote;
             }
             else
@@ -123,11 +146,11 @@ public partial class MainPage : ContentPage
         finally
         {
             estaProcesando = false;
-            await Task.Delay(100);
+            // Pequeño respiro para la UI antes de recuperar el foco
+            await Task.Delay(400);
             TxtScanner.Focus();
         }
     }
-
     private void MostrarEstado(string mensaje, Color color)
     {
         LblStatus.Text = mensaje;

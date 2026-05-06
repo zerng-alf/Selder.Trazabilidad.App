@@ -1,49 +1,100 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:layout="clr-namespace:Microsoft.Maui.Controls;assembly=Microsoft.Maui.Controls"
              x:Class="Selder.Trazabilidad.App.LoginPage"
              Title="Acceso Selder"
-             BackgroundColor="White">
+             NavigationPage.HasNavigationBar="False"
+             BackgroundColor="#F5F5F5">
 
-    <ScrollView>
-        <VerticalStackLayout Spacing="20" Padding="30" VerticalOptions="Center">
+    <Grid>
+        <!-- Fondo con un toque de color en la parte superior -->
+        <BoxView BackgroundColor="#2196F3" 
+                 VerticalOptions="Start" 
+                 HeightRequest="200"/>
 
-            <Image Source="dotnet_bot.png" 
-                   HeightRequest="100" 
-                   HorizontalOptions="Center" />
+        <ScrollView VerticalOptions="Center">
+            <VerticalStackLayout Padding="25" Spacing="0">
 
-            <Label Text="Trazabilidad de Fabricación" 
-                   FontSize="22" 
-                   FontAttributes="Bold" 
-                   HorizontalOptions="Center" 
-                   TextColor="#2196F3"/>
+                <!-- Tarjeta de Login -->
+                <Frame CornerRadius="20" 
+                       HasShadow="True" 
+                       Padding="30" 
+                       Margin="0,0,0,10"
+                       BackgroundColor="White"
+                       BorderColor="Transparent">
 
-            <Entry x:Name="TxtUsuario" 
-                   TextColor="Black"
-                   PlaceholderColor="Gray"
-                   Placeholder="Usuario" 
-                   Keyboard="Text" />
+                    <VerticalStackLayout Spacing="20">
 
-            <Entry x:Name="TxtPassword" 
-                   TextColor="Black"
-                   PlaceholderColor="Gray"
-                   Placeholder="Contraseña" 
-                   IsPassword="True" />
+                        <!-- Logo -->
+                        <Image Source="selder.png" 
+                               HeightRequest="50" 
+                               Margin="0,0,0,10"
+                               HorizontalOptions="Center" />
 
-            <Button Text="ENTRAR" 
-                    Clicked="OnLoginClicked" 
-                    BackgroundColor="#2196F3" 
-                    TextColor="White" 
-                    FontAttributes="Bold"
-                    HeightRequest="50"
-                    CornerRadius="10"/>
+                        <Label Text="TRAZABILIDAD" 
+                               FontSize="20" 
+                               FontAttributes="Bold" 
+                               HorizontalOptions="Center" 
+                               TextColor="#333"/>
 
-            <Label x:Name="LblError" 
-                   TextColor="Red" 
-                   FontSize="14"
-                   HorizontalOptions="Center" />
+                        <Label Text="Inicie sesión para continuar" 
+                               FontSize="14" 
+                               TextColor="Gray" 
+                               HorizontalOptions="Center"
+                               Margin="0,-15,0,10"/>
 
-        </VerticalStackLayout>
-    </ScrollView>
+                        <!-- Campos de entrada con borde inferior -->
+                        <VerticalStackLayout Spacing="5">
+                            <Label Text="Usuario" FontSize="12" TextColor="#2196F3" FontAttributes="Bold" Margin="5,0"/>
+                            <Frame Padding="10,0" HeightRequest="45" CornerRadius="8" BackgroundColor="#F9F9F9" BorderColor="#DDD">
+                                <Entry x:Name="TxtUsuario" 
+                                       Placeholder="Ingrese su usuario"
+                                       TextColor="Black"
+                                       FontSize="15"/>
+                            </Frame>
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Spacing="5">
+                            <Label Text="Contraseña" FontSize="12" TextColor="#2196F3" FontAttributes="Bold" Margin="5,0"/>
+                            <Frame Padding="10,0" HeightRequest="45" CornerRadius="8" BackgroundColor="#F9F9F9" BorderColor="#DDD">
+                                <Entry x:Name="TxtPassword" 
+                                       IsPassword="True" 
+                                       Placeholder="••••••••"
+                                       TextColor="Black"
+                                       FontSize="15"/>
+                            </Frame>
+                        </VerticalStackLayout>
+
+                        <!-- Botón Moderno -->
+                        <Button Text="INICIAR SESIÓN" 
+                                Clicked="OnLoginClicked" 
+                                BackgroundColor="#2196F3" 
+                                TextColor="White" 
+                                HeightRequest="55" 
+                                CornerRadius="12" 
+                                FontAttributes="Bold"
+                                Margin="0,10,0,0">
+                            <Button.Shadow>
+                                <Shadow Brush="Black" Offset="0,5" Radius="5" Opacity="0.2"/>
+                            </Button.Shadow>
+                        </Button>
+
+                        <Label x:Name="LblError" 
+                               TextColor="#D32F2F" 
+                               FontSize="13"
+                               HorizontalOptions="Center" 
+                               FontAttributes="Italic"/>
+
+                    </VerticalStackLayout>
+                </Frame>
+
+                <Label Text="© 2026 Selder - Sistema de Trazabilidad" 
+                       FontSize="11" 
+                       TextColor="Gray" 
+                       HorizontalOptions="Center" 
+                       Margin="0,20,0,0"/>
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
 </ContentPage>

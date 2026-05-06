@@ -4,6 +4,7 @@ using Sentry;
 
 namespace Selder.Trazabilidad.App
 {
+
     public static class MauiProgram
     {
         public static MauiApp CreateMauiApp()
