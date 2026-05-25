@@ -7,7 +7,6 @@
              BackgroundColor="#F5F5F5">
 
     <Grid>
-        <!-- Fondo con un toque de color en la parte superior -->
         <BoxView BackgroundColor="#2196F3" 
                  VerticalOptions="Start" 
                  HeightRequest="200"/>
@@ -15,7 +14,6 @@
         <ScrollView VerticalOptions="Center">
             <VerticalStackLayout Padding="25" Spacing="0">
 
-                <!-- Tarjeta de Login -->
                 <Frame CornerRadius="20" 
                        HasShadow="True" 
                        Padding="30" 
@@ -25,14 +23,13 @@
 
                     <VerticalStackLayout Spacing="20">
 
-                        <!-- Logo -->
                         <Image Source="selder.png" 
                                HeightRequest="50" 
                                Margin="0,0,0,10"
                                HorizontalOptions="Center" />
 
                         <Label Text="TRAZABILIDAD" 
-                               FontSize="20" 
+                               FontSize="22" 
                                FontAttributes="Bold" 
                                HorizontalOptions="Center" 
                                TextColor="#333"/>
@@ -43,14 +40,14 @@
                                HorizontalOptions="Center"
                                Margin="0,-15,0,10"/>
 
-                        <!-- Campos de entrada con borde inferior -->
                         <VerticalStackLayout Spacing="5">
                             <Label Text="Usuario" FontSize="12" TextColor="#2196F3" FontAttributes="Bold" Margin="5,0"/>
                             <Frame Padding="10,0" HeightRequest="45" CornerRadius="8" BackgroundColor="#F9F9F9" BorderColor="#DDD">
                                 <Entry x:Name="TxtUsuario" 
                                        Placeholder="Ingrese su usuario"
                                        TextColor="Black"
-                                       FontSize="15"/>
+                                       FontSize="15"
+                                       Completed="OnEntryCompleted"/>
                             </Frame>
                         </VerticalStackLayout>
 
@@ -61,12 +58,13 @@
                                        IsPassword="True" 
                                        Placeholder="••••••••"
                                        TextColor="Black"
-                                       FontSize="15"/>
+                                       FontSize="15"
+                                       Completed="OnEntryCompleted"/>
                             </Frame>
                         </VerticalStackLayout>
 
-                        <!-- Botón Moderno -->
-                        <Button Text="INICIAR SESIÓN" 
+                        <Button x:Name="BtnLogin"
+                                Text="INICIAR SESIÓN" 
                                 Clicked="OnLoginClicked" 
                                 BackgroundColor="#2196F3" 
                                 TextColor="White" 

@@ -1,9 +1,11 @@
 ﻿using Selder.Trazabilidad.App.Models;
 using Selder.Trazabilidad.App.Helpers;
 using Selder.Trazabilidad.App.Services;
+using Selder.Trazabilidad.App.Configuration;
 using SQLite;
 using System.Text;
 using System.Text.Json;
+using Sentry;
 
 namespace Selder.Trazabilidad.App;
 
@@ -11,9 +13,8 @@ public partial class MainPage : ContentPage
 {
     private string _etapaSeleccionada;
     private readonly SQLiteAsyncConnection _db = App.Database;
-    private readonly TraceabilityService _traceService; // Inyectamos el servicio
+    private readonly TraceabilityService _traceService;
     bool estaProcesando = false;
-    private string _bufferEscaneo = ""; // Aquí guardaremos el código letra por letra
     private CancellationTokenSource _scannerCts;
 
     public MainPage(string etapa)
@@ -21,17 +22,11 @@ public partial class MainPage : ContentPage
         InitializeComponent();
         _etapaSeleccionada = etapa;
 
-        // Inicializamos el servicio con la URL que ya tenías configurada
-        _traceService = new TraceabilityService(
-            App.Database,
-            "https://nevaeh-biographical-overgratefully.ngrok-free.dev/api/Trazabilidad/registrar"
-        );
+        _traceService = new TraceabilityService(App.Database);
 
-        if (_db != null)
-        {
-            _db.CreateTableAsync<MovimientoLocal>().Wait();
-        }
+        _ = InitializeDatabaseAsync();
 
+        // Configuración específica para Android para mitigar el teclado
 #if ANDROID
         var platformView = TxtScanner.Handler?.PlatformView as Android.Widget.EditText;
         if (platformView != null)
@@ -40,8 +35,16 @@ public partial class MainPage : ContentPage
         }
 #endif
 
-        LblInstruccion.Text = $"ETAPA: {_etapaSeleccionada} - ESCANEE LOTE";
-        LblLoteCapturado.Text = "---";
+        LblInstruccion.Text = $"ETAPA: {_etapaSeleccionada.ToUpper()} - ESCANEE LOTE";
+        LblLoteCapturado.Text = "------";
+    }
+
+    private async Task InitializeDatabaseAsync()
+    {
+        if (_db != null)
+        {
+            await _db.CreateTableAsync<MovimientoLocal>();
+        }
     }
 
     protected override void OnAppearing()
@@ -49,29 +52,23 @@ public partial class MainPage : ContentPage
         base.OnAppearing();
         Task.Delay(300).ContinueWith(_ => MainThread.BeginInvokeOnMainThread(() => {
             TxtScanner.Focus();
+            OcultarTecladoNativo();
         }));
     }
 
     private async void OnScannerTextChanged(object sender, TextChangedEventArgs e)
     {
-        // 1. Si el cambio fue porque nosotros limpiamos el campo (Text = ""), ignoramos.
         if (string.IsNullOrEmpty(e.NewTextValue)) return;
 
-        // 2. Acumulamos lo que entró. 
-        // NOTA: Usamos el último carácter porque la Zebra manda una ráfaga.
         string entradaActual = e.NewTextValue;
 
-        // Reiniciamos el temporizador de espera
         _scannerCts?.Cancel();
         _scannerCts = new CancellationTokenSource();
 
         try
         {
-            // Esperamos 800ms de "silencio" total del escáner
-            await Task.Delay(800, _scannerCts.Token);
+            await Task.Delay(AppConfig.ScannerDelayMs, _scannerCts.Token);
 
-            // Si llegamos aquí, el escáner terminó de mandar datos.
-            // Tomamos TODO lo que se acumuló en el Entry.
             string codigoCompleto = entradaActual.Trim().ToUpper();
 
             if (codigoCompleto.Length >= 3)
@@ -81,8 +78,27 @@ public partial class MainPage : ContentPage
         }
         catch (TaskCanceledException)
         {
-            // El escáner sigue mandando letras, no hacemos nada todavía
+            // El escáner sigue enviando caracteres
         }
+    }
+
+    private void OcultarTecladoNativo()
+    {
+#if ANDROID
+        var platformView = TxtScanner.Handler?.PlatformView as Android.Widget.EditText;
+        if (platformView != null)
+        {
+            platformView.ShowSoftInputOnFocus = false;
+            
+            var contexto = Android.App.Application.Context;
+            var inputMethodManager = contexto.GetSystemService(Android.Content.Context.InputMethodService) as Android.Views.InputMethods.InputMethodManager;
+            
+            if (inputMethodManager != null && platformView.WindowToken != null)
+            {
+                inputMethodManager.HideSoftInputFromWindow(platformView.WindowToken, 0);
+            }
+        }
+#endif
     }
 
     private async Task ProcesarEntradaDirecta(string codigoLote)
@@ -93,10 +109,12 @@ public partial class MainPage : ContentPage
         {
             estaProcesando = true;
 
-            // LIMPIEZA INMEDIATA: Vaciamos el TxtScanner para que esté listo para el siguiente lote
+            LoadingIndicator.IsRunning = true;
+            BtnReset.IsEnabled = false;
+
             MainThread.BeginInvokeOnMainThread(() => TxtScanner.Text = string.Empty);
 
-            // 1. LÓGICA DE DETECCIÓN (Usa la variable codigoLote que ya viene completa)
+            // LÓGICA DE DETECCIÓN LOCAL
             var ultimoMovimiento = await _db.Table<MovimientoLocal>()
                 .Where(m => m.NumLote == codigoLote && m.Etapa.StartsWith(_etapaSeleccionada))
                 .OrderByDescending(m => m.Fecha)
@@ -118,14 +136,43 @@ public partial class MainPage : ContentPage
                 MostrarEstado($"FINALIZANDO: {codigoLote}", Colors.Green);
             }
 
-            // 2. REGISTRO
-            var result = await _traceService.LogEventAsync(subEtapaApi, codigoLote, etiquetaLocal);
+            // CONSUMO DEL SERVICIO: Pasamos la etapa matricial, lote, subetapa e ID del operador logueado
+            var result = await _traceService.LogEventAsync(
+                _etapaSeleccionada,
+                codigoLote,
+                subEtapaApi,
+                App.UsuarioLogueadoId,
+                etiquetaLocal
+            );
 
             if (result.IsSuccess)
             {
-                MostrarEstado($"¡{subEtapaApi} REGISTRADO!", Colors.Green);
+                // REQUERIMIENTO DEL DIBUJO (Paso 4): Revelar las horas y guías al escanear
+                ContenedorInformacion.IsVisible = true;
+
+                if (result.IsDuplicado)
+                {
+                    // REQUERIMIENTO: Si ya existe en la BD, pintar verde y alertar duplicado
+                    MostrarEstado("¡YA FUE ESCANEADO PREVIAMENTE!", Colors.Green);
+                }
+                else
+                {
+                    MostrarEstado($"¡{subEtapaApi} REGISTRADO!", Colors.Green);
+                }
+
+                // REQUERIMIENTO: Asignar tiempos y actualizar instrucciones de forma dinámica
+                if (subEtapaApi == "INICIO")
+                {
+                    LblHoraInicio.Text = $"Hora Inicio: {result.FechaOriginal}";
+                    LblInstruccion.Text = "ESCANEE FIN DE PROCESO";
+                }
+                else if (subEtapaApi == "FIN")
+                {
+                    LblHoraFin.Text = $"Hora Fin: {result.FechaOriginal}";
+                    LblInstruccion.Text = "PROCESO FINALIZADO";
+                }
+
                 LblLoteCapturado.Text = codigoLote;
-                LblInstruccion.Text = $"ÚLTIMO: {etiquetaLocal}";
             }
             else if (result.IsOffline)
             {
@@ -141,30 +188,39 @@ public partial class MainPage : ContentPage
         }
         catch (Exception ex)
         {
-            await DisplayAlert("Error Crítico", ex.Message, "OK");
+            SentrySdk.CaptureException(ex);
+            await DisplayAlert("Error Crítico", "Ocurrió un problema. Intente de nuevo.", "OK");
         }
         finally
         {
             estaProcesando = false;
-            // Pequeño respiro para la UI antes de recuperar el foco
+            LoadingIndicator.IsRunning = false;
+            BtnReset.IsEnabled = true;
+
             await Task.Delay(400);
             TxtScanner.Focus();
+            OcultarTecladoNativo();
         }
     }
+
     private void MostrarEstado(string mensaje, Color color)
     {
         LblStatus.Text = mensaje;
         FrameStatus.BackgroundColor = color;
-
-        // Ajuste de contraste para el color amarillo
         LblStatus.TextColor = (color == Colors.Yellow) ? Colors.Black : Colors.White;
     }
 
     private void OnResetClicked(object sender, EventArgs e)
     {
-        LblLoteCapturado.Text = "---";
+        LblLoteCapturado.Text = "------";
+        LblHoraInicio.Text = "Hora Inicio: ---";
+        LblHoraFin.Text = "Hora Fin: ---";
+
+        // REQUERIMIENTO DEL DIBUJO (Paso 3): Regresar a vista ultra simple ocultando la información inferior
+        ContenedorInformacion.IsVisible = false;
+
         MostrarEstado("ESPERANDO ESCANEO...", Color.FromArgb("#444"));
-        LblInstruccion.Text = $"ETAPA: {_etapaSeleccionada} - ESCANEE LOTE";
+        LblInstruccion.Text = $"ETAPA: {_etapaSeleccionada.ToUpper()} - ESCANEE LOTE";
         TxtScanner.Focus();
     }
 
@@ -177,5 +233,21 @@ public partial class MainPage : ContentPage
     private async void RegresarPagina()
     {
         await Navigation.PopAsync();
+    }
+
+    private async void OnLogoutClicked(object sender, EventArgs e)
+    {
+        bool confirm = await DisplayAlert("Cerrar Sesión", "¿Está seguro que desea salir?", "Sí", "No");
+
+        if (confirm)
+        {
+            SentrySdk.CaptureMessage("Usuario cerró sesión");
+            var authService = App.Services.GetRequiredService<IAuthService>();
+
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                Application.Current.MainPage = new NavigationPage(new LoginPage(authService));
+            });
+        }
     }
 }

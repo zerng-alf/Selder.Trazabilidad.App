@@ -86,7 +86,7 @@
                             Clicked="OnEtapaSelected" 
                             CommandParameter="ETAPA4" 
                             HeightRequest="120"
-                            FontSize="14" 
+                            FontSize="14"
                             BackgroundColor="Transparent" 
                             TextColor="#999"
                             IsEnabled="False"/>

@@ -1,8 +1,9 @@
+using Microsoft.Data.SqlClient;
+using Selder.Trazabilidad.App.Helpers;
+using Selder.Trazabilidad.App.Services;
 using SQLite;
 using System.Text;
 using System.Text.Json;
-using Selder.Trazabilidad.App.Services;
-using Selder.Trazabilidad.App.Helpers;
 
 namespace Selder.Trazabilidad.App;
 
@@ -18,10 +19,9 @@ public partial class EscaneoTiemposPage : ContentPage
         _lote = lote;
         _etapa = etapa;
 
-        _trace = new TraceabilityService(
-            App.Database,
-            "https://nevaeh-biographical-overgratefully.ngrok-free.dev/api/Trazabilidad/registrar"
-        );
+        // CORRECCIÓN: Usamos el constructor limpio inyectando la base de datos 
+        // para que tome la URL dinámica de AppConfig y no rompa al cambiar de túnel ngrok
+        _trace = new TraceabilityService(App.Database);
 
         LblInfo.Text = $"Lote: {_lote} | Etapa: {_etapa}";
         TxtScannerTiempos.Focus();
@@ -32,25 +32,35 @@ public partial class EscaneoTiemposPage : ContentPage
         string codigo = e.NewTextValue?.Trim().ToUpper() ?? "";
         if (string.IsNullOrEmpty(codigo)) return;
 
-        // Mapeo igual que tu lógica original
-        string etapaApi = codigo switch
+        // Mapeo de subEtapa (Si es INICIO o FIN del proceso)
+        string subEtapaApi = codigo switch
         {
-            var c when c.Contains("INICIO") => TraceabilityService.Etapa.Inicio,
-            var c when c.Contains("FIN") || c.Contains("FINAL") => TraceabilityService.Etapa.Produccion,
+            var c when c.Contains("INICIO") => "INICIO",
+            var c when c.Contains("FIN") || c.Contains("FINAL") => "FIN",
             _ => ""
         };
 
-        if (string.IsNullOrEmpty(etapaApi)) return;
+        if (string.IsNullOrEmpty(subEtapaApi)) return;
 
         TxtScannerTiempos.Text = string.Empty;
-        MostrarEstado("ENVIANDO...","", Colors.Orange);
+        MostrarEstado("ENVIANDO...", "", Colors.Orange);
 
-        var result = await _trace.LogEventAsync(etapaApi, _lote);
+        // CORRECCIÓN DE LA FIRMA: Mandamos la etapa base del menú principal (_etapa), el lote, 
+        // la subEtapa detectada por el switch (INICIO/FIN) y el usuario global logueado
+        var result = await _trace.LogEventAsync(_etapa, _lote, subEtapaApi, App.UsuarioLogueadoId);
 
         if (result.IsSuccess)
         {
-            MostrarEstado($"¡{etapaApi} REGISTRADO!","", Colors.Green);
-            if (etapaApi == TraceabilityService.Etapa.Produccion)
+            if (result.IsDuplicado)
+            {
+                MostrarEstado("¡YA FUE ESCANEADO PREVIAMENTE!", "", Colors.Green);
+            }
+            else
+            {
+                MostrarEstado($"¡{subEtapaApi} REGISTRADO!", "", Colors.Green);
+            }
+
+            if (subEtapaApi == "FIN")
             {
                 await Task.Delay(1500);
                 await Navigation.PopAsync();
@@ -58,14 +68,14 @@ public partial class EscaneoTiemposPage : ContentPage
         }
         else if (result.IsOffline)
         {
-            MostrarEstado("GUARDADO LOCAL (SIN RED)","", Colors.Yellow);
+            MostrarEstado("GUARDADO LOCAL (SIN RED)", "", Colors.Yellow);
             LblStatus.TextColor = Colors.Black;
             LblDetalleError.Text = result.Message;
             LblDetalleError.IsVisible = true;
         }
-        else // IsFail — error de datos (lote no encontrado, etapa inválida)
+        else // IsFail
         {
-            MostrarEstado("ERROR DE REGISTRO","", Colors.Red);
+            MostrarEstado("ERROR DE REGISTRO", "", Colors.Red);
             LblDetalleError.Text = result.Message;
             LblDetalleError.IsVisible = true;
         }
@@ -77,7 +87,6 @@ public partial class EscaneoTiemposPage : ContentPage
         LblDetalleError.Text = detalle;
         FrameStatus.BackgroundColor = colorFondo;
 
-        // Si el fondo es Amarillo (Local), ponemos texto negro. Si no, blanco.
         if (colorFondo == Colors.Yellow)
         {
             LblStatus.TextColor = Colors.Black;
