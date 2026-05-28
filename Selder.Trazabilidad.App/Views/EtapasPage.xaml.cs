@@ -52,7 +52,7 @@ public partial class EtapasPage : ContentPage
         await _db.InsertAsync(new MovimientoLocal
         {
             NumLote = loteCapturado,
-            Etapa = $"PESADO_{accion}", // Aquí puedes cambiar la etapa si es Secado, etc.
+            Etapa = $"GRANULADO{accion}", // Aquí puedes cambiar la etapa si es GRANULADO, etc.
             Fecha = DateTime.Now,
             Sincronizado = false
         });

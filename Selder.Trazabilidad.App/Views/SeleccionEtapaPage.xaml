@@ -3,7 +3,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Selder.Trazabilidad.App.SeleccionEtapaPage"
              Title="Paso 1: Etapa de Trabajo"
+             NavigationPage.HasNavigationBar="True"
+             NavigationPage.BackButtonTitle="Salir"
              BackgroundColor="#F5F5F5">
+
 
     <ScrollView>
         <VerticalStackLayout Spacing="15" Padding="20">
@@ -47,49 +50,49 @@
                             Clicked="OnEtapaSelected" 
                             CommandParameter="PESADO" 
                             HeightRequest="120"
-                            FontSize="16" 
+                            FontSize="15" 
                             FontAttributes="Bold"
                             BackgroundColor="White" 
                             TextColor="#2196F3"/>
                 </Frame>
 
-                <!-- Etapa 2: Secado -->
+                <!-- Etapa 2: GRANULADO -->
                 <Frame Grid.Row="0" Grid.Column="1" 
                        Padding="0" CornerRadius="15" HasShadow="True" BorderColor="Transparent">
-                    <Button Text="2. SECADO" 
+                    <Button Text="2. GRANULADO" 
                             Clicked="OnEtapaSelected" 
-                            CommandParameter="SECADO" 
+                            CommandParameter="GRANULADO" 
                             HeightRequest="120"
-                            FontSize="16" 
+                            FontSize="15" 
                             FontAttributes="Bold"
                             BackgroundColor="White" 
                             TextColor="#2196F3"/>
                 </Frame>
 
-                <!-- Etapa 3: Pendiente -->
+                <!-- Etapa 3:  COMPRESIÓN -->
                 <Frame Grid.Row="1" Grid.Column="0" 
-                       Padding="0" CornerRadius="15" HasShadow="False" BorderColor="#DDD" BackgroundColor="#F0F0F0">
-                    <Button Text="3. PENDIENTE" 
+                       Padding="0" CornerRadius="15" HasShadow="True" BorderColor="Transparent">
+                    <Button Text="3. COMPRESIÓN"
                             Clicked="OnEtapaSelected" 
-                            CommandParameter="ETAPA3" 
+                            CommandParameter="COMPRESIÓN" 
                             HeightRequest="120"
                             FontSize="14" 
-                            BackgroundColor="Transparent" 
-                            TextColor="#999"
-                            IsEnabled="False"/>
+                            FontAttributes="Bold"
+                            BackgroundColor="White" 
+                            TextColor="#2196F3"/>
                 </Frame>
 
-                <!-- Etapa 4: Pendiente -->
+                <!-- Etapa 4: RECUBRIMIENTO -->
                 <Frame Grid.Row="1" Grid.Column="1" 
-                       Padding="0" CornerRadius="15" HasShadow="False" BorderColor="#DDD" BackgroundColor="#F0F0F0">
-                    <Button Text="4. PENDIENTE" 
+                       Padding="0" CornerRadius="15" HasShadow="True" BorderColor="Transparent">
+                    <Button Text="4.RECUBRIMIENTO" 
                             Clicked="OnEtapaSelected" 
-                            CommandParameter="ETAPA4" 
+                            CommandParameter="RECUBRIMIENTO" 
                             HeightRequest="120"
                             FontSize="14"
-                            BackgroundColor="Transparent" 
-                            TextColor="#999"
-                            IsEnabled="False"/>
+                            FontAttributes="Bold"
+                            BackgroundColor="White" 
+                            TextColor="#2196F3"/>
                 </Frame>
             </Grid>
 

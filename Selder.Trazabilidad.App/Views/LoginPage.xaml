@@ -60,6 +60,7 @@
                                        TextColor="Black"
                                        FontSize="15"
                                        Completed="OnEntryCompleted"/>
+                                <!--TextChanged="OnTxtPasswordTextChanged"/>-->
                             </Frame>
                         </VerticalStackLayout>
 

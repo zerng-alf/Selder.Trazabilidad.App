@@ -27,6 +27,7 @@ namespace Selder.Trazabilidad.App
                 return;
             }
 
+            // Validación estricta: Ambos campos deben tener datos para que la API de Selder los procese
             if (string.IsNullOrWhiteSpace(TxtUsuario.Text) || string.IsNullOrWhiteSpace(TxtPassword.Text))
             {
                 LblError.Text = "Por favor ingrese usuario y contraseña";
@@ -38,7 +39,8 @@ namespace Selder.Trazabilidad.App
 
             try
             {
-                var (success, message, nombreUsuario) = await _authService.ValidateCredentialsAsync(TxtUsuario.Text, TxtPassword.Text);
+                // Enviamos los datos capturados de ambos escaneos
+                var (success, message, nombreUsuario) = await _authService.ValidateCredentialsAsync(TxtUsuario.Text.Trim(), TxtPassword.Text.Trim());
 
                 if (success)
                 {
@@ -49,9 +51,11 @@ namespace Selder.Trazabilidad.App
                     App.UsuarioLogueadoId = TxtUsuario.Text.Trim();
 
                     // Cambiamos la MainPage de raíz para limpiar el historial y blindar el botón "Atrás"
+                    // Dentro del éxito del Login en LoginPage.xaml.cs:
                     MainThread.BeginInvokeOnMainThread(() =>
                     {
-                        Application.Current.MainPage = new NavigationPage(new SeleccionEtapaPage());
+                        // Cambiamos la raíz para que entre al nuevo menú de dos secciones
+                        Application.Current.MainPage = new NavigationPage(new Views.SeleccionProcesoPage());
                     });
                 }
                 else
@@ -59,12 +63,16 @@ namespace Selder.Trazabilidad.App
                     _intentosFallidos++;
                     SentrySdk.CaptureMessage($"Intento de login fallido. Intento: {_intentosFallidos}/{MaxIntentos}");
 
+                    // Si falla el acceso, limpiamos la contraseña para que vuelvan a escanear la credencial
+                    TxtPassword.Text = string.Empty;
+                    TxtPassword.Focus();
+
                     if (_intentosFallidos >= MaxIntentos)
                     {
                         BtnLogin.IsEnabled = false;
                         BtnLogin.Text = "BLOQUEADO";
                         BtnLogin.BackgroundColor = Colors.Gray;
-                        LblError.Text = "Acceso bloqueada. Demasiados intentos fallidos.";
+                        LblError.Text = "Acceso bloqueado. Demasiados intentos fallidos.";
                     }
                     else
                     {
@@ -77,6 +85,7 @@ namespace Selder.Trazabilidad.App
             {
                 SentrySdk.CaptureException(ex);
                 LblError.Text = "Error al iniciar sesión";
+                TxtPassword.Text = string.Empty;
             }
             finally
             {
@@ -88,22 +97,53 @@ namespace Selder.Trazabilidad.App
             }
         }
 
+        // ============================================================
+        // CONTROLADOR DE ENTER Y ESCÁNER (AQUÍ SE HACE LA MAGIA)
+        // ============================================================
         private void OnEntryCompleted(object sender, EventArgs e)
         {
-            if (sender == TxtUsuario && !string.IsNullOrWhiteSpace(TxtUsuario.Text))
+            // PASO 1: Si dan enter o escanean en el Usuario...
+            if (sender == TxtUsuario)
             {
-                TxtPassword.Focus();
+                if (!string.IsNullOrWhiteSpace(TxtUsuario.Text))
+                {
+                    // Mandamos el foco en automático a la contraseña para recibir el segundo escaneo
+                    TxtPassword.Focus();
+                }
             }
+            // PASO 2: ¡EL GATILLAZO FINAL! Si la Zebra mete la contraseña y manda el Enter automático...
             else if (sender == TxtPassword)
             {
-                OnLoginClicked(this, EventArgs.Empty);
+                if (!string.IsNullOrWhiteSpace(TxtPassword.Text) && !string.IsNullOrWhiteSpace(TxtUsuario.Text))
+                {
+                    // ¡LUEGO LUEGO ENTRA! Dispara el método de Login directamente
+                    OnLoginClicked(BtnLogin, EventArgs.Empty);
+                }
             }
         }
 
-        protected override bool OnBackButtonPressed()
+        private async void OnTxtPasswordTextChanged(object sender, TextChangedEventArgs e)
         {
-            // Bloquea el botón físico de Android en el login
-            return true;
+            // Si la Honeywell ya inyectó caracteres en la contraseña y el usuario está lleno...
+            if (!string.IsNullOrWhiteSpace(TxtPassword.Text) && !string.IsNullOrWhiteSpace(TxtUsuario.Text))
+            {
+                // Como la Honeywell escribe a ráfaga ultra rápida, capturamos el texto y esperamos 300ms
+                string textoActual = TxtPassword.Text;
+                await Task.Delay(300);
+
+                // Si el texto ya no cambió después de la espera, significa que la pistola terminó de escribir
+                if (TxtPassword.Text == textoActual)
+                {
+                    // ENTRA Ejecuta el login de forma automática sin pedir Enter físico
+                    OnLoginClicked(BtnLogin, EventArgs.Empty);
+                }
+            }
         }
+
+        //protected override bool OnBackButtonPressed()
+        //{
+        //    // Bloquea el botón físico de Android en el login
+        //    return true;
+        //}
     }
 }

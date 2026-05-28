@@ -43,6 +43,16 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <MauiXaml Remove="Views\MenuAcondicionamientoPage.xaml" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <EmbeddedResource Include="Views\MenuAcondicionamientoPage.xaml">
+	    <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
+	  </EmbeddedResource>
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.1" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="8.0.100" />
@@ -65,6 +75,9 @@
 		</MauiXaml>
 		<MauiXaml Update="Views\SeleccionEtapaPage.xaml">
 			<Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+		<MauiXaml Update="Views\SeleccionProcesoPage.xaml">
+		  <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
 		</MauiXaml>
 	</ItemGroup>
 

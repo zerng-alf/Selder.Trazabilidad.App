@@ -94,16 +94,23 @@ public class TraceabilityService
                 using var doc = JsonDocument.Parse(cuerpoExito);
                 var root = doc.RootElement;
 
+                // 1. Extraemos los booleanos y textos bases del JSON de la API
                 bool yaRegistrado = root.TryGetProperty("yaRegistrado", out var yr) && yr.GetBoolean();
                 string fechaOriginal = root.TryGetProperty("fechaOriginal", out var fo) ? fo.GetString() : "";
 
+                // 2. CORRECCIÓN CRÍTICA: Deserializamos las dos nuevas propiedades que manda tu API modificada
+                string fechaInicioServer = root.TryGetProperty("fechaInicio", out var fi) ? fi.GetString() : "---";
+                string fechaFinServer = root.TryGetProperty("fechaFin", out var ff) ? ff.GetString() : "---";
+
+                // Guardamos en la base de datos interna SQLite de la Zebra
                 await GuardarLocalAsync(numLote, etiquetaGuardado, "", sincronizado: true);
                 SentrySdk.CaptureMessage($"Registro procesado en servidor: Lote={numLote}, YaExistia={yaRegistrado}");
 
+                // 3. Empaquetamos todo mandando los 5 parámetros al método estático Ok()
                 if (yaRegistrado)
-                    return TraceResult.Ok("YA FUE ESCANEADO ANTES", fechaOriginal, esDuplicado: true);
+                    return TraceResult.Ok("YA FUE ESCANEADO ANTES", fechaOriginal, esDuplicado: true, fechaInicioServer, fechaFinServer);
                 else
-                    return TraceResult.Ok("Registro exitoso.", fechaOriginal, esDuplicado: false);
+                    return TraceResult.Ok("Registro exitoso.", fechaOriginal, esDuplicado: false, fechaInicioServer, fechaFinServer);
             }
 
             var cuerpo = await response.Content.ReadAsStringAsync();
@@ -133,7 +140,7 @@ public class TraceabilityService
     }
 
     // ============================================================
-    // SINCRONIZACIÓN DE PENDIENTES - CORREGIDO
+    // SINCRONIZACIÓN DE PENDIENTES
     // ============================================================
     public async Task<(int enviados, int fallidos)> SyncPendientesAsync()
     {
@@ -147,8 +154,6 @@ public class TraceabilityService
 
         foreach (var mov in pendientes)
         {
-            // CORRECCIÓN: Como en SQLite se guarda la etiqueta compuesta "PESADO - INICIO", 
-            // la deshebramos para mandarla limpia a la API junto con el usuario global
             string etapaBase = mov.Etapa?.Split('-')[0].Trim() ?? "PESADO";
             string subEtapaBase = mov.Etapa?.Contains("FIN") == true ? "FIN" : "INICIO";
 
@@ -194,7 +199,7 @@ public class TraceabilityService
 }
 
 // ============================================================
-// RESULTADO TIPADO
+// RESULTADO TIPADO (RE-ESTRUCTURADO Y ARREGLADO)
 // ============================================================
 public class TraceResult
 {
@@ -204,12 +209,26 @@ public class TraceResult
     public string FechaOriginal { get; private set; } = "";
     public bool IsDuplicado { get; private set; } = false;
 
+    // PROPIEDADES NUEVAS COMPLETAMENTE CAPTURADAS CON SETTER PRIVADO
+    public string FechaInicio { get; private set; } = "---";
+    public string FechaFin { get; private set; } = "---";
+
     public bool IsSuccess => Tipo == TipoResultado.Success;
     public bool IsOffline => Tipo == TipoResultado.Offline;
     public bool IsFail => Tipo == TipoResultado.Fail;
 
-    public static TraceResult Ok(string msg, string fecha = "", bool esDuplicado = false)
-        => new() { Tipo = TipoResultado.Success, Message = msg, FechaOriginal = fecha, IsDuplicado = esDuplicado };
+    // MÉTODO ESTÁTICO CORREGIDO PARA INYECTAR LAS FECHAS SEPARADAS DE SQL SERVER
+    public static TraceResult Ok(string msg, string fecha = "", bool esDuplicado = false, string fechaInicio = "---", string fechaFin = "---")
+        => new()
+        {
+            Tipo = TipoResultado.Success,
+            Message = msg,
+            FechaOriginal = fecha,
+            IsDuplicado = esDuplicado,
+            FechaInicio = fechaInicio,
+            FechaFin = fechaFin
+        };
+
     public static TraceResult Offline(string msg) => new() { Tipo = TipoResultado.Offline, Message = msg };
     public static TraceResult Fail(string msg) => new() { Tipo = TipoResultado.Fail, Message = msg };
 }

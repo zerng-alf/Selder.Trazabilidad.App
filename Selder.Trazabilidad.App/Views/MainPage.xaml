@@ -19,7 +19,8 @@
                Padding="20"
                BorderColor="Transparent">
             <VerticalStackLayout Spacing="5" HorizontalOptions="Center">
-                <Label Text="MONITOR DE ACTIVIDAD" 
+                <Label x:Name="LblInstruccion"  
+                       Text="ESCANEE LOTE" 
                        TextColor="White" 
                        FontSize="11" 
                        FontAttributes="Bold"
@@ -38,17 +39,6 @@
         <ScrollView Grid.Row="1">
             <VerticalStackLayout Spacing="5" VerticalOptions="Center">
 
-                <Frame BackgroundColor="White" CornerRadius="12" Padding="15" HasShadow="False" BorderColor="#DDD">
-                    <HorizontalStackLayout Spacing="5" HorizontalOptions="Center">
-                        <Label x:Name="LblInstruccion" 
-                               Text="ETAPA: PESADO - ESCANEE LOTE" 
-                               TextColor="#333" 
-                               FontSize="14" 
-                               FontAttributes="Bold"
-                               VerticalOptions="Center"/>
-                    </HorizontalStackLayout>
-                </Frame>
-
                 <Entry x:Name="TxtScanner" 
                        TextChanged="OnScannerTextChanged" 
                        HeightRequest="1" 
@@ -58,7 +48,7 @@
                        HorizontalOptions="Center"/>
 
                 <VerticalStackLayout Spacing="8" HorizontalOptions="Center">
-                    <Label Text="LOTE EN PROCESO" 
+                    <Label Text="LOTE PROCESADO" 
                            FontSize="12" 
                            TextColor="#666" 
                            FontAttributes="Bold"
@@ -77,13 +67,13 @@
 
                     <VerticalStackLayout Spacing="5" HorizontalOptions="Center" Margin="0,12,0,0">
                         <Label x:Name="LblHoraInicio" 
-                               Text="Hora Inicio: ---" 
+                               Text="Hora Inicio: ..." 
                                FontSize="14" 
                                FontAttributes="Bold" 
                                TextColor="DarkCyan" 
                                HorizontalOptions="Center"/>
                         <Label x:Name="LblHoraFin" 
-                               Text="Hora Fin: ---" 
+                               Text="Hora Fin: ..." 
                                FontSize="14" 
                                FontAttributes="Bold" 
                                TextColor="Green" 

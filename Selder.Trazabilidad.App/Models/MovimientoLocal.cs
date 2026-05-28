@@ -14,4 +14,5 @@ public class MovimientoLocal
     public DateTime Fecha { get; set; }
 
     public bool Sincronizado { get; set; } // Esto nos dirá si ya se mandó a SQL Server o no
+
 }

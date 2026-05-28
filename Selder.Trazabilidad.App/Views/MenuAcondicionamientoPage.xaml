@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="Selder.Trazabilidad.App.MenuAcondicionamientoPage"
+             Title="Etapas Acondicionamiento"
+             BackgroundColor="#F5F5F5">
+
+    <VerticalStackLayout Padding="20" Spacing="20" VerticalOptions="CenterAndExpand">
+
+        <Label Text="ACONDICIONAMIENTO" FontAttributes="Bold" FontSize="18" HorizontalOptions="Center" TextColor="#2B579A"/>
+        <Label Text="Seleccione la sub-etapa a escanear:" FontSize="14" HorizontalOptions="Center" TextColor="#666" Margin="0,0,0,15"/>
+
+        <Button Text="1. SURTIDO" 
+                Clicked="OnSurtidoClicked" 
+                BackgroundColor="#2B579A" 
+                TextColor="White" 
+                FontSize="16" 
+                FontAttributes="Bold"
+                HeightRequest="60" 
+                CornerRadius="8"/>
+
+        <Button Text="2. ACONDICIONAMIENTO" 
+                Clicked="OnAcondicionamientoProcesoClicked" 
+                BackgroundColor="#1F3F73" 
+                TextColor="White" 
+                FontSize="16" 
+                FontAttributes="Bold"
+                HeightRequest="60" 
+                CornerRadius="8"/>
+
+    </VerticalStackLayout>
+</ContentPage>
