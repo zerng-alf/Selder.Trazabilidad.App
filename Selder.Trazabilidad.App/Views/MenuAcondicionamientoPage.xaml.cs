@@ -8,7 +8,8 @@ public partial class MenuAcondicionamientoPage : ContentPage
 {
     public MenuAcondicionamientoPage()
     {
-        InitializeComponent();
+
+        InitializeComponent(); 
     }
 
     private async void OnSurtidoClicked(object sender, EventArgs e)
