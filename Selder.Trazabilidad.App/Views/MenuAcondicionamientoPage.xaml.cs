@@ -1,4 +1,5 @@
-﻿using Sentry;
+﻿using Microsoft.Maui.Controls; // o Xamarin.Forms si aplica
+using Sentry;
 using Selder.Trazabilidad.App.Services;
 
 namespace Selder.Trazabilidad.App.Views;
@@ -7,7 +8,7 @@ public partial class MenuAcondicionamientoPage : ContentPage
 {
     public MenuAcondicionamientoPage()
     {
-        //InitializeComponent();
+        InitializeComponent();
     }
 
     private async void OnSurtidoClicked(object sender, EventArgs e)
