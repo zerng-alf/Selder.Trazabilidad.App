@@ -189,7 +189,7 @@ public partial class MainPage : ContentPage
                 if (esTerceraLectura || result.IsDuplicado)
                 {
                     MostrarEstado("¡LOTE YA PROCESADO Y CERRADO!", Colors.Green);
-                    LblInstruccion.Text = "PROCESO FINALIZADO COMPLETAMENTE";
+                    LblInstruccion.Text = $"ETAPA: {_etapaSeleccionada.ToUpper()}";
 
                     // 1. OBTENER HORA DE INICIO: Prioriza lo que mandó la API de SQL Server, si no, usa el local
                     string fechaInicioStr = "---";
@@ -222,8 +222,8 @@ public partial class MainPage : ContentPage
                     }
 
                     // 3. ASIGNACIÓN FINAL A LAS ETIQUETAS DE LA INTERFAZ
-                    LblHoraInicio.Text = $"Hora Inicio: {fechaInicioStr}";
-                    LblHoraFin.Text = $"Hora Fin: {fechaFinStr}";
+                    LblHoraInicio.Text = $" {fechaInicioStr}";
+                    LblHoraFin.Text = $" {fechaFinStr}";
                 }
                 else
                 {
@@ -232,17 +232,17 @@ public partial class MainPage : ContentPage
 
                     if (subEtapaApi == "INICIO")
                     {
-                        LblHoraInicio.Text = $"Hora Inicio: {result.FechaOriginal}";
-                        LblHoraFin.Text = "Hora Fin: ---";
+                        LblHoraInicio.Text = $" {result.FechaOriginal}";
+                        LblHoraFin.Text = " ---";
                         LblInstruccion.Text = "ESCANEE FIN DE PROCESO";
                     }
                     else if (subEtapaApi == "FIN")
                     {
                         if (movimientoInicio != null)
                         {
-                            LblHoraInicio.Text = $"Hora Inicio: {movimientoInicio.Fecha:dd/MM/yyyy hh:mm:ss tt}";
+                            LblHoraInicio.Text = $" {movimientoInicio.Fecha:dd/MM/yyyy hh:mm:ss tt}";
                         }
-                        LblHoraFin.Text = $"Hora Fin: {result.FechaOriginal}";
+                        LblHoraFin.Text = $" {result.FechaOriginal}";
                         LblInstruccion.Text = "PROCESO FINALIZADO";
                     }
                 }

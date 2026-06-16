@@ -7,6 +7,10 @@
              NavigationPage.BackButtonTitle="Salir"
              BackgroundColor="#F5F5F5">
 
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Salir" Clicked="OnLogoutClicked" IconImageSource="logout.png"/>
+    </ContentPage.ToolbarItems>
+
 
     <ScrollView>
         <VerticalStackLayout Spacing="15" Padding="20">
@@ -18,7 +22,7 @@
                    Padding="20"
                    BorderColor="Transparent">
                 <VerticalStackLayout Spacing="5">
-                    <Label Text="MÓDULO DE TRAZABILIDAD" 
+                    <Label Text="FABRICACIÓN" 
                            TextColor="White" 
                            FontSize="12" 
                            FontAttributes="Bold"
@@ -40,7 +44,7 @@
                    TextColor="#666" 
                    Margin="5,10,0,0"/>
 
-            <!-- Listado de Etapas Modernizado -->
+            <!-- Listado de Etapas -->
             <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="15" RowSpacing="15">
 
                 <!-- Etapa 1: Pesado -->

@@ -21,7 +21,7 @@ public class AuthService : IAuthService
 
         try
         {
-            // Usamos la URL de ngrok configurada en tu AppConfig
+            
             string urlLogin = $"{AppConfig.ApiBaseUrl}/api/Trazabilidad/login";
 
             // Armamos el objeto con los nombres que espera la API

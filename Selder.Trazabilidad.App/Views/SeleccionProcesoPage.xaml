@@ -6,11 +6,18 @@
              BackgroundColor="#F5F5F5">
 
     <ScrollView>
-        <VerticalStackLayout Padding="20" Spacing="25" VerticalOptions="CenterAndExpand">
+        <VerticalStackLayout Padding="20" Spacing="20" VerticalOptions="Start">
 
-            <Image Source="selder_logo.png" HeightRequest="60" HorizontalOptions="Center" Margin="0,0,0,10"/>
-            <Label Text="SISTEMA DE TRAZABILIDAD" FontAttributes="Bold" FontSize="20" HorizontalOptions="Center" TextColor="#333"/>
-            <Label Text="Seleccione el tipo de proceso a registrar:" FontSize="14" HorizontalOptions="Center" TextColor="#666"/>
+            <Image Source="selder.png" 
+                   HeightRequest="50" 
+                   HorizontalOptions="Center" 
+                   Margin="0,20,0,10"/>
+
+            <Label Text="Seleccione el tipo de proceso a registrar:" 
+                   FontAttributes="Bold" 
+                   FontSize="16" 
+                   HorizontalOptions="Center" 
+                   TextColor="#333"/>
 
             <Frame BackgroundColor="#FFFFFF" CornerRadius="10" HasShadow="True" Padding="20">
                 <Frame.GestureRecognizers>

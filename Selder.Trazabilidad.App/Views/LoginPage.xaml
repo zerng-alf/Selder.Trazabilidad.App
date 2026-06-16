@@ -28,17 +28,11 @@
                                Margin="0,0,0,10"
                                HorizontalOptions="Center" />
 
-                        <Label Text="TRAZABILIDAD" 
-                               FontSize="22" 
+                        <Label Text="Inicie sesión para continuar" 
+                               FontSize="17" 
                                FontAttributes="Bold" 
                                HorizontalOptions="Center" 
                                TextColor="#333"/>
-
-                        <Label Text="Inicie sesión para continuar" 
-                               FontSize="14" 
-                               TextColor="Gray" 
-                               HorizontalOptions="Center"
-                               Margin="0,-15,0,10"/>
 
                         <VerticalStackLayout Spacing="5">
                             <Label Text="Usuario" FontSize="12" TextColor="#2196F3" FontAttributes="Bold" Margin="5,0"/>

@@ -98,7 +98,7 @@ namespace Selder.Trazabilidad.App
         }
 
         // ============================================================
-        // CONTROLADOR DE ENTER Y ESCÁNER (AQUÍ SE HACE LA MAGIA)
+        // CONTROLADOR DE ENTER Y ESCÁNER
         // ============================================================
         private void OnEntryCompleted(object sender, EventArgs e)
         {
@@ -111,7 +111,7 @@ namespace Selder.Trazabilidad.App
                     TxtPassword.Focus();
                 }
             }
-            // PASO 2: ¡EL GATILLAZO FINAL! Si la Zebra mete la contraseña y manda el Enter automático...
+            // PASO 2: ¡EL GATILLAZO FINAL! Si el escaner mete la contraseña y manda el Enter automático...
             else if (sender == TxtPassword)
             {
                 if (!string.IsNullOrWhiteSpace(TxtPassword.Text) && !string.IsNullOrWhiteSpace(TxtUsuario.Text))

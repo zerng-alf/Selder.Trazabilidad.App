@@ -63,38 +63,41 @@
                     </Frame>
                 </VerticalStackLayout>
 
-                <VerticalStackLayout x:Name="ContenedorInformacion" IsVisible="False" Spacing="15">
+                <VerticalStackLayout x:Name="ContenedorInformacion" IsVisible="False" Spacing="20" Margin="0,15,0,0">
 
-                    <VerticalStackLayout Spacing="5" HorizontalOptions="Center" Margin="0,12,0,0">
+                    <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
+                        <Label x:Name="HoraInicio" 
+                               Text="Hora inicio:" 
+                               FontSize="15" 
+                               FontAttributes="Bold" 
+                               TextColor="DarkCyan" 
+                               HorizontalOptions="Center"/>
                         <Label x:Name="LblHoraInicio" 
-                               Text="Hora Inicio: ..." 
-                               FontSize="14" 
+                               Text="--" 
+                               FontSize="15" 
+                               FontAttributes="Bold" 
+                               TextColor="Green" 
+                               HorizontalOptions="Center"
+                               Margin="0,0,0,15"/>
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="4" HorizontalOptions="Center">
+                        <Label x:Name="HoraFin" 
+                               Text="Hora fin:" 
+                               FontSize="15" 
                                FontAttributes="Bold" 
                                TextColor="DarkCyan" 
                                HorizontalOptions="Center"/>
                         <Label x:Name="LblHoraFin" 
-                               Text="Hora Fin: ..." 
-                               FontSize="14" 
+                               Text="--" 
+                               FontSize="15" 
                                FontAttributes="Bold" 
                                TextColor="Green" 
                                HorizontalOptions="Center"/>
                     </VerticalStackLayout>
 
-                    <VerticalStackLayout Spacing="10" Margin="0,20">
-                        <Label Text="Guía de Escaneo:" FontSize="13" TextColor="#555" FontAttributes="Bold" HorizontalOptions="Center"/>
-                        <HorizontalStackLayout Spacing="20" HorizontalOptions="Center">
-                            <VerticalStackLayout HorizontalOptions="Center">
-                                <BoxView Color="DarkCyan" HeightRequest="15" WidthRequest="15" CornerRadius="4"/>
-                                <Label Text="1er Escaneo: Inicio" FontSize="10" TextColor="#777"/>
-                            </VerticalStackLayout>
-                            <VerticalStackLayout HorizontalOptions="Center">
-                                <BoxView Color="Green" HeightRequest="15" WidthRequest="15" CornerRadius="4"/>
-                                <Label Text="2do Escaneo: Fin" FontSize="10" TextColor="#777"/>
-                            </VerticalStackLayout>
-                        </HorizontalStackLayout>
-                    </VerticalStackLayout>
-
                 </VerticalStackLayout>
+
             </VerticalStackLayout>
         </ScrollView>
 

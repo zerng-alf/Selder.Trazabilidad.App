@@ -1,3 +1,7 @@
+using Microsoft.Maui.Controls;
+using Sentry;
+using Selder.Trazabilidad.App.Services;
+
 namespace Selder.Trazabilidad.App;
 
 public partial class SeleccionEtapaPage : ContentPage
@@ -17,5 +21,24 @@ public partial class SeleccionEtapaPage : ContentPage
 
         // Ahora navegamos a MainPage pasando SOLO la etapa
         await Navigation.PushAsync(new MainPage(etapa));
+    }
+
+    private async void OnLogoutClicked(object sender, EventArgs e)
+    {
+        bool confirm = await DisplayAlert("Cerrar Sesión", "¿Está seguro que desea salir?", "Sí", "No");
+
+        if (confirm)
+        {
+            SentrySdk.CaptureMessage("Usuario cerró sesión");
+
+            // Jala el servicio de autenticación desde el contenedor global de dependencias
+            var authService = App.Services.GetRequiredService<IAuthService>();
+
+            MainThread.BeginInvokeOnMainThread(() =>
+            {
+                // Limpia todo el historial de páginas y monta el LoginPage desde raíz para blindar la app
+                Application.Current.MainPage = new NavigationPage(new LoginPage(authService));
+            });
+        }
     }
 }

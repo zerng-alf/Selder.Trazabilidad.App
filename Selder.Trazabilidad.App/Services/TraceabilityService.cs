@@ -118,7 +118,7 @@ public class TraceabilityService
 
             await GuardarLocalAsync(numLote, etiquetaGuardado, "", sincronizado: false);
             SentrySdk.CaptureMessage($"Error API: {mensajeApi}");
-            return TraceResult.Fail($"La API respondió: {mensajeApi}");
+            return TraceResult.Fail($" {mensajeApi}");
         }
         catch (TaskCanceledException)
         {
