@@ -106,7 +106,6 @@
                    HorizontalOptions="Center" 
                    Margin="0,20,0,0"
                    FontAttributes="Italic"/>
-
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

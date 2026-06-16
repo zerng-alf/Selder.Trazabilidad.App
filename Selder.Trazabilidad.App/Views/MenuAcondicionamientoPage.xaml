@@ -37,7 +37,7 @@
                 </VerticalStackLayout>
             </Frame>
 
-            <Label Text="ETAPAS DISPONIBLES" 
+            <Label Text="ETAPAS DISPONIBLES"
                    FontSize="13" 
                    FontAttributes="Bold" 
                    TextColor="#666" 
@@ -75,7 +75,6 @@
                    HorizontalOptions="Center" 
                    Margin="0,20,0,0"
                    FontAttributes="Italic"/>
-
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>
