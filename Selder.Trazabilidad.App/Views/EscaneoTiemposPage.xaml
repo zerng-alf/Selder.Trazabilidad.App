@@ -7,7 +7,6 @@
 
     <VerticalStackLayout Spacing="30" Padding="30" VerticalOptions="Center">
 
-        <!--<Label x:Name="LblInfo" FontSize="18" HorizontalOptions="Center" TextColor="#333"/>-->
         <Label x:Name="LblInfo" 
        Text="Cargando..." 
        FontSize="18" 
@@ -19,6 +18,12 @@
            WidthRequest="300"
            HeightRequest="50"
            Placeholder="Esperando escaneo..."/>
+
+        <ActivityIndicator x:Name="LoadingIndicator"
+                           IsRunning="False"
+                           IsVisible="False"
+                           Color="#2196F3"
+                           HorizontalOptions="Center"/>
 
         <Frame x:Name="FrameStatus" 
                BackgroundColor="#444" 

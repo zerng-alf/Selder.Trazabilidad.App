@@ -12,6 +12,8 @@ public partial class EscaneoTiemposPage : ContentPage
     private readonly string _lote;
     private readonly string _etapa;
     private readonly TraceabilityService _trace;
+    private CancellationTokenSource _scannerCts;
+    private bool _estaProcesando;
 
     public EscaneoTiemposPage(string lote, string etapa)
     {
@@ -19,8 +21,6 @@ public partial class EscaneoTiemposPage : ContentPage
         _lote = lote;
         _etapa = etapa;
 
-        // CORRECCIÓN: Usamos el constructor limpio inyectando la base de datos 
-        // para que tome la URL dinámica de AppConfig y no rompa al cambiar de túnel ngrok
         _trace = new TraceabilityService(App.Database);
 
         LblInfo.Text = $"Lote: {_lote} | Etapa: {_etapa}";
@@ -29,55 +29,79 @@ public partial class EscaneoTiemposPage : ContentPage
 
     private async void OnScannerTiemposChanged(object sender, TextChangedEventArgs e)
     {
+        if (_estaProcesando) return;
+
         string codigo = e.NewTextValue?.Trim().ToUpper() ?? "";
         if (string.IsNullOrEmpty(codigo)) return;
 
-        // Mapeo de subEtapa (Si es INICIO o FIN del proceso)
-        string subEtapaApi = codigo switch
+        _scannerCts?.Cancel();
+        _scannerCts = new CancellationTokenSource();
+
+        try
         {
-            var c when c.Contains("INICIO") => "INICIO",
-            var c when c.Contains("FIN") || c.Contains("FINAL") => "FIN",
-            _ => ""
-        };
+            await Task.Delay(400, _scannerCts.Token);
 
-        if (string.IsNullOrEmpty(subEtapaApi)) return;
+            string codigoFinal = codigo;
 
-        TxtScannerTiempos.Text = string.Empty;
-        MostrarEstado("ENVIANDO...", "", Colors.Orange);
-
-        // CORRECCIÓN DE LA FIRMA: Mandamos la etapa base del menú principal (_etapa), el lote, 
-        // la subEtapa detectada por el switch (INICIO/FIN) y el usuario global logueado
-        var result = await _trace.LogEventAsync(_etapa, _lote, subEtapaApi, App.UsuarioLogueadoId);
-
-        if (result.IsSuccess)
-        {
-            if (result.IsDuplicado)
+            string subEtapaApi = codigoFinal switch
             {
-                MostrarEstado("¡YA FUE ESCANEADO PREVIAMENTE!", "", Colors.Green);
+                var c when c.Contains("INICIO") => "INICIO",
+                var c when c.Contains("FIN") || c.Contains("FINAL") => "FIN",
+                _ => ""
+            };
+
+            if (string.IsNullOrEmpty(subEtapaApi)) return;
+
+            _estaProcesando = true;
+            TxtScannerTiempos.Text = string.Empty;
+            LoadingIndicator.IsRunning = true;
+            LoadingIndicator.IsVisible = true;
+            MostrarEstado("ENVIANDO...", "", Colors.Orange);
+
+            var result = await _trace.LogEventAsync(_etapa, _lote, subEtapaApi, App.UsuarioLogueadoId);
+
+            LoadingIndicator.IsRunning = false;
+            LoadingIndicator.IsVisible = false;
+
+            if (result.IsSuccess)
+            {
+                if (result.IsDuplicado)
+                {
+                    MostrarEstado("YA FUE ESCANEADO PREVIAMENTE", "", Colors.Green);
+                }
+                else
+                {
+                    MostrarEstado($"{subEtapaApi} REGISTRADO", "", Colors.Green);
+                }
+
+                if (subEtapaApi == "FIN")
+                {
+                    await Task.Delay(1500);
+                    await Navigation.PopAsync();
+                }
+            }
+            else if (result.IsOffline)
+            {
+                MostrarEstado("GUARDADO LOCAL (SIN RED)", "", Colors.Yellow);
+                LblStatus.TextColor = Colors.Black;
+                LblDetalleError.Text = result.Message;
+                LblDetalleError.IsVisible = true;
             }
             else
             {
-                MostrarEstado($"¡{subEtapaApi} REGISTRADO!", "", Colors.Green);
-            }
-
-            if (subEtapaApi == "FIN")
-            {
-                await Task.Delay(1500);
-                await Navigation.PopAsync();
+                MostrarEstado("ERROR DE REGISTRO", "", Colors.Red);
+                LblDetalleError.Text = result.Message;
+                LblDetalleError.IsVisible = true;
             }
         }
-        else if (result.IsOffline)
+        catch (TaskCanceledException)
         {
-            MostrarEstado("GUARDADO LOCAL (SIN RED)", "", Colors.Yellow);
-            LblStatus.TextColor = Colors.Black;
-            LblDetalleError.Text = result.Message;
-            LblDetalleError.IsVisible = true;
         }
-        else // IsFail
+        finally
         {
-            MostrarEstado("ERROR DE REGISTRO", "", Colors.Red);
-            LblDetalleError.Text = result.Message;
-            LblDetalleError.IsVisible = true;
+            _estaProcesando = false;
+            LoadingIndicator.IsRunning = false;
+            LoadingIndicator.IsVisible = false;
         }
     }
 

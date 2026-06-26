@@ -7,8 +7,8 @@ public static class AppConfig
     // ============================================================
 
     // URL base de la API - Se centraliza para evitar duplicación
-    // TODO: Cambiar por la URL de producción cuando esté lista
-    public static string ApiBaseUrl => "https://tumbling-frown-muppet.ngrok-free.dev";
+    // IMPORTANTE: Cambiar por la URL de producción cuando esté lista
+    public static string ApiBaseUrl => "https://nevaeh-biographical-overgratefully.ngrok-free.dev";
 
     // Endpoint de trazabilidad
     public static string TrazabilidadEndpoint => $"{ApiBaseUrl}/api/Trazabilidad/registrar";
@@ -18,13 +18,7 @@ public static class AppConfig
     // ============================================================
 
     // Cambiar por la cadena de conexión real de producción
-
-    // Cambiamos el nombre del servidor por la IP exacta que nos dio el ping
-
-    // Alternativa forzando el puerto estándar de SQL Server (usa coma, no diagonal)
     public static string ConnectionString => "Data Source=130.107.20.200,1433;Initial Catalog=PRUEBASLEYVA;User ID=BECARIO;Password=123456789;TrustServerCertificate=True";
-    //public static string ConnectionString => "Data Source=130.107.20.200\\seldersql;Initial Catalog=PRUEBASLEYVA;User ID=BECARIO;Password=123456789;TrustServerCertificate=True";
-    //public static string ConnectionString => "Data Source=seldersqlmex\\seldersql;Initial Catalog=PRUEBASLEYVA;User ID=BECARIO;Password=123456789;TrustServerCertificate=True";
     //public static string ConnectionString => "Data Source=seldersqlmex\\seldersql;Initial Catalog=PRUEBASLEYVA; Integrated Security=True;TrustServerCertificate=True";
 
     // ============================================================

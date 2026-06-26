@@ -18,7 +18,7 @@ namespace Selder.Trazabilidad.App
                 .UseMauiApp<App>()
                 .UseSentry(options =>
                 {
-                    options.Dsn = "https://90b22ba348971e816b3e9fc785f994bb@o4511299157884928.ingest.us.sentry.io/4511299207168000";
+                    options.Dsn = "https://22c6d49056d49a6dcdf5e54e10b9dafb@o4511593260384256.ingest.us.sentry.io/4511593357574144";
                     options.TracesSampleRate = 1.0;
                     options.Debug = true;
                     options.AutoSessionTracking = true;

@@ -1,15 +1,14 @@
-using SQLite;
 using Selder.Trazabilidad.App.Services;
-using Selder.Trazabilidad.App.Helpers;
-using Selder.Trazabilidad.App.Models;
 
 namespace Selder.Trazabilidad.App;
 
+[Obsolete("Esta p√°gina est√° deprecated. Usar MainPage o EscaneoTiemposPage en su lugar.")]
 public partial class EtapasPage : ContentPage
 {
     string loteCapturado;
-    // Usamos la conexiÛn global de App
-    private readonly SQLiteAsyncConnection _db = App.Database;
+    private CancellationTokenSource _scannerCts;
+    private bool _estaProcesando;
+    private readonly TraceabilityService _trace;
 
     public EtapasPage(string lote)
     {
@@ -17,44 +16,60 @@ public partial class EtapasPage : ContentPage
         loteCapturado = lote;
         LblLoteInfo.Text = $"LOTE: {lote}";
 
-        // Importante: Para recibir el esc·ner
+        _trace = new TraceabilityService(App.Database);
         TxtScannerEtapa.Focus();
     }
 
     private async void OnScannerEtapaChanged(object sender, TextChangedEventArgs e)
     {
+        if (_estaProcesando) return;
+
         string codigo = e.NewTextValue?.Trim().ToUpper();
         if (string.IsNullOrEmpty(codigo)) return;
 
-        // Limpiar para el siguiente escaneo
-        TxtScannerEtapa.Text = string.Empty;
+        _scannerCts?.Cancel();
+        _scannerCts = new CancellationTokenSource();
 
-        // LÛgica de escaneo para tiempos
-        if (codigo == "INICIO")
+        try
         {
-            await RegistrarEvento("INICIO");
-            await DisplayAlert("…xito", "Inicio de etapa registrado", "OK");
+            await Task.Delay(400, _scannerCts.Token);
+
+            string subEtapa = codigo switch
+            {
+                "INICIO" => "INICIO",
+                "FIN" => "FIN",
+                _ => null
+            };
+
+            if (subEtapa == null) return;
+
+            _estaProcesando = true;
+            TxtScannerEtapa.Text = string.Empty;
+
+            var result = await _trace.LogEventAsync("GRANULADO", loteCapturado, subEtapa, App.UsuarioLogueadoId);
+
+            if (result.IsSuccess)
+            {
+                await DisplayAlert("√âxito", $"{subEtapa} de etapa registrado", "OK");
+                if (subEtapa == "FIN")
+                    await Navigation.PopAsync();
+            }
+            else if (result.IsOffline)
+            {
+                await DisplayAlert("Modo Offline", "Guardado localmente. Se sincronizar√° despu√©s.", "OK");
+            }
+            else
+            {
+                await DisplayAlert("Error", result.Message, "OK");
+            }
         }
-        else if (codigo == "FIN")
+        catch (TaskCanceledException)
         {
-            await RegistrarEvento("FIN");
-            await DisplayAlert("…xito", "Fin de etapa registrado", "OK");
-
-            // Regresamos a la pantalla de lotes
-            await Navigation.PopAsync();
         }
-    }
-
-    private async Task RegistrarEvento(string accion)
-    {
-        if (_db == null) return;
-
-        await _db.InsertAsync(new MovimientoLocal
+        finally
         {
-            NumLote = loteCapturado,
-            Etapa = $"GRANULADO{accion}", // AquÌ puedes cambiar la etapa si es GRANULADO, etc.
-            Fecha = DateTime.Now,
-            Sincronizado = false
-        });
+            _estaProcesando = false;
+            TxtScannerEtapa.Focus();
+        }
     }
 }

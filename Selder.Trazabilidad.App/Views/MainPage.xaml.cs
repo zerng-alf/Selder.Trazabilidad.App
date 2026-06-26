@@ -298,7 +298,8 @@ public partial class MainPage : ContentPage
         // Regresa el cuadro de estado a Gris obscuro (Modo espera)
         MostrarEstado("ESPERANDO ESCANEO...", Color.FromArgb("#444"));
         LblInstruccion.Text = $"ETAPA: {_etapaSeleccionada.ToUpper()} - ESCANEE LOTE";
-        TxtScanner.Focus(); // Regresa el cursor al escáner
+        TxtScanner.Focus();
+        OcultarTecladoNativo();
     }
 
     // BOTÓN FÍSICO ATRÁS: Intercepta el botón de navegación nativo

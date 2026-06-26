@@ -35,7 +35,7 @@ public class AuthService : IAuthService
             var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
 
             using var client = new HttpClient();
-            // Usamos el timeout configurado en tu AppConfig
+            // Usamos el timeout configurado en AppConfig
             client.Timeout = TimeSpan.FromSeconds(AppConfig.ApiTimeoutSeconds);
 
             var response = await client.PostAsync(urlLogin, content);

@@ -49,7 +49,40 @@ public class TraceabilityService
     }
 
     // ============================================================
-    // MÉTODO PRINCIPAL - Registrar evento de fabricación (4 Etapas x 4 Campos)
+    // NÚCLEO DE COMUNICACIÓN CON LA API (SIN GUARDADO LOCAL)
+    // ============================================================
+    private static bool HayConexion()
+    {
+        return Connectivity.Current.NetworkAccess == NetworkAccess.Internet;
+    }
+
+    private async Task<(HttpResponseMessage Response, string Body)> EnviarApiCoreAsync(string etapaApi, string numLote, string subEtapa, string idUsuario)
+    {
+        if (!HayConexion())
+        {
+            SentrySdk.CaptureMessage($"Sin conexión al intentar enviar: Lote={numLote}");
+            throw new HttpRequestException("Sin conexión a Internet.");
+        }
+        var payload = JsonSerializer.Serialize(new
+        {
+            numLote = numLote,
+            etapa = etapaApi,
+            subEtapa = subEtapa,
+            idUsuario = idUsuario
+        });
+
+        var content = new StringContent(payload, Encoding.UTF8, "application/json");
+
+        SentrySdk.CaptureMessage($"Enviando registro: Lote={numLote}, Etapa={etapaApi}, SubEtapa={subEtapa}, Usuario={idUsuario}");
+
+        var response = await _http.PostAsync(_apiUrl, content).ConfigureAwait(false);
+        var body = await response.Content.ReadAsStringAsync();
+
+        return (response, body);
+    }
+
+    // ============================================================
+    // MÉTODO PRINCIPAL - Registrar evento desde UI (con guardado local)
     // ============================================================
     public async Task<TraceResult> LogEventAsync(string etapaApi, string numLote, string subEtapa, string idUsuario, string etapaParaLocal = "")
     {
@@ -71,76 +104,56 @@ public class TraceabilityService
 
         string etiquetaGuardado = string.IsNullOrEmpty(etapaParaLocal) ? $"{etapaApi} - {subEtapa}" : etapaParaLocal;
 
-        // PAYLOAD EN MINÚSCULAS PARA TU NUEVO DTO EN LA API
-        var payload = JsonSerializer.Serialize(new
-        {
-            numLote = numLote,
-            etapa = etapaApi,
-            subEtapa = subEtapa,
-            idUsuario = idUsuario
-        });
-
-        var content = new StringContent(payload, Encoding.UTF8, "application/json");
-
         try
         {
-            SentrySdk.CaptureMessage($"Enviando registro: Lote={numLote}, Etapa={etapaApi}, SubEtapa={subEtapa}, Usuario={idUsuario}");
-
-            var response = await _http.PostAsync(_apiUrl, content).ConfigureAwait(false);
+            var (response, body) = await EnviarApiCoreAsync(etapaApi, numLote, subEtapa, idUsuario);
 
             if (response.IsSuccessStatusCode)
             {
-                var cuerpoExito = await response.Content.ReadAsStringAsync();
-                using var doc = JsonDocument.Parse(cuerpoExito);
+                using var doc = JsonDocument.Parse(body);
                 var root = doc.RootElement;
 
-                // 1. Extraemos los booleanos y textos bases del JSON de la API
                 bool yaRegistrado = root.TryGetProperty("yaRegistrado", out var yr) && yr.GetBoolean();
                 string fechaOriginal = root.TryGetProperty("fechaOriginal", out var fo) ? fo.GetString() : "";
-
-                // 2. CORRECCIÓN CRÍTICA: Deserializamos las dos nuevas propiedades que manda tu API modificada
                 string fechaInicioServer = root.TryGetProperty("fechaInicio", out var fi) ? fi.GetString() : "---";
                 string fechaFinServer = root.TryGetProperty("fechaFin", out var ff) ? ff.GetString() : "---";
 
-                // Guardamos en la base de datos interna SQLite de la Zebra
-                await GuardarLocalAsync(numLote, etiquetaGuardado, "", sincronizado: true);
                 SentrySdk.CaptureMessage($"Registro procesado en servidor: Lote={numLote}, YaExistia={yaRegistrado}");
 
-                // 3. Empaquetamos todo mandando los 5 parámetros al método estático Ok()
                 if (yaRegistrado)
                     return TraceResult.Ok("YA FUE ESCANEADO ANTES", fechaOriginal, esDuplicado: true, fechaInicioServer, fechaFinServer);
                 else
                     return TraceResult.Ok("Registro exitoso.", fechaOriginal, esDuplicado: false, fechaInicioServer, fechaFinServer);
             }
 
-            var cuerpo = await response.Content.ReadAsStringAsync();
-            string mensajeApi = ExtraerMensajeApi(cuerpo) ?? $"HTTP {(int)response.StatusCode}";
-
-            await GuardarLocalAsync(numLote, etiquetaGuardado, "", sincronizado: false);
+            await GuardarLocalAsync(numLote, etiquetaGuardado, sincronizado: false);
+            string mensajeApi = ExtraerMensajeApi(body) ?? $"HTTP {(int)response.StatusCode}";
             SentrySdk.CaptureMessage($"Error API: {mensajeApi}");
             return TraceResult.Fail($" {mensajeApi}");
         }
         catch (TaskCanceledException)
         {
-            await GuardarLocalAsync(numLote, etiquetaGuardado, "", sincronizado: false);
+            await GuardarLocalAsync(numLote, etiquetaGuardado, sincronizado: false);
             SentrySdk.CaptureMessage($"Timeout - guardado offline: Lote={numLote}");
             return TraceResult.Offline("Tiempo de espera agotado. Guardado localmente.");
         }
         catch (HttpRequestException ex)
         {
-            await GuardarLocalAsync(numLote, etiquetaGuardado, "", sincronizado: false);
+            await GuardarLocalAsync(numLote, etiquetaGuardado, sincronizado: false);
             SentrySdk.CaptureException(ex);
             return TraceResult.Offline("Sin conexión. Guardado localmente.");
         }
         catch (Exception ex)
         {
+            await GuardarLocalAsync(numLote, etiquetaGuardado, sincronizado: false);
             SentrySdk.CaptureException(ex);
+            SentrySdk.CaptureMessage($"Error inesperado - guardado offline: Lote={numLote}");
             return TraceResult.Fail($"Error inesperado: {ex.Message}");
         }
     }
 
     // ============================================================
-    // SINCRONIZACIÓN DE PENDIENTES
+    // SINCRONIZACIÓN DE PENDIENTES (usa API directo, sin duplicar)
     // ============================================================
     public async Task<(int enviados, int fallidos)> SyncPendientesAsync()
     {
@@ -157,15 +170,24 @@ public class TraceabilityService
             string etapaBase = mov.Etapa?.Split('-')[0].Trim() ?? "PESADO";
             string subEtapaBase = mov.Etapa?.Contains("FIN") == true ? "FIN" : "INICIO";
 
-            var resultado = await LogEventAsync(etapaBase, mov.NumLote ?? "", subEtapaBase, App.UsuarioLogueadoId);
-
-            if (resultado.IsSuccess)
+            try
             {
-                mov.Sincronizado = true;
-                await _db.UpdateAsync(mov);
-                enviados++;
+                var (response, _) = await EnviarApiCoreAsync(
+                    etapaBase, mov.NumLote ?? "", subEtapaBase, App.UsuarioLogueadoId
+                );
+
+                if (response.IsSuccessStatusCode)
+                {
+                    mov.Sincronizado = true;
+                    await _db.UpdateAsync(mov);
+                    enviados++;
+                }
+                else
+                {
+                    fallidos++;
+                }
             }
-            else
+            catch
             {
                 fallidos++;
             }
@@ -175,7 +197,7 @@ public class TraceabilityService
         return (enviados, fallidos);
     }
 
-    private Task GuardarLocalAsync(string numLote, string etapa, string observaciones, bool sincronizado)
+    private Task GuardarLocalAsync(string numLote, string etapa, bool sincronizado)
         => _db.InsertAsync(new MovimientoLocal
         {
             NumLote = numLote,
@@ -199,7 +221,7 @@ public class TraceabilityService
 }
 
 // ============================================================
-// RESULTADO TIPADO (RE-ESTRUCTURADO Y ARREGLADO)
+// RESULTADO TIPADO
 // ============================================================
 public class TraceResult
 {
@@ -209,15 +231,15 @@ public class TraceResult
     public string FechaOriginal { get; private set; } = "";
     public bool IsDuplicado { get; private set; } = false;
 
-    // PROPIEDADES NUEVAS COMPLETAMENTE CAPTURADAS CON SETTER PRIVADO
     public string FechaInicio { get; private set; } = "---";
+
     public string FechaFin { get; private set; } = "---";
 
     public bool IsSuccess => Tipo == TipoResultado.Success;
     public bool IsOffline => Tipo == TipoResultado.Offline;
     public bool IsFail => Tipo == TipoResultado.Fail;
 
-    // MÉTODO ESTÁTICO CORREGIDO PARA INYECTAR LAS FECHAS SEPARADAS DE SQL SERVER
+    // MÉTODO ESTÁTICO PARA INYECTAR LAS FECHAS SEPARADAS DE SQL SERVER
     public static TraceResult Ok(string msg, string fecha = "", bool esDuplicado = false, string fechaInicio = "---", string fechaFin = "---")
         => new()
         {

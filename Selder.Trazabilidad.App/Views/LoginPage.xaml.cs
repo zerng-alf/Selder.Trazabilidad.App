@@ -139,11 +139,5 @@ namespace Selder.Trazabilidad.App
                 }
             }
         }
-
-        //protected override bool OnBackButtonPressed()
-        //{
-        //    // Bloquea el botón físico de Android en el login
-        //    return true;
-        //}
     }
 }
